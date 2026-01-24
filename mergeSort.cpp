@@ -1,6 +1,7 @@
 #include <iostream>
 using namespace std;
 
+/* ---------- COMMON MERGE FUNCTION ---------- */
 void merge(int arr[], int temp[], int left, int mid, int right) {
     int i = left;
     int j = mid + 1;
@@ -23,7 +24,21 @@ void merge(int arr[], int temp[], int left, int mid, int right) {
         arr[x] = temp[x];
 }
 
-void mergeSort(int arr[], int n) {
+/* ---------- RECURSIVE MERGE SORT ---------- */
+void recursiveMergeSort(int arr[], int temp[], int left, int right) {
+    if (left >= right)
+        return;
+
+    int mid = (left + right) / 2;
+
+    recursiveMergeSort(arr, temp, left, mid);
+    recursiveMergeSort(arr, temp, mid + 1, right);
+
+    merge(arr, temp, left, mid, right);
+}
+
+/* ---------- NON RECURSIVE (ITERATIVE) MERGE SORT ---------- */
+void iterativeMergeSort(int arr[], int n) {
     int temp[n];
 
     for (int size = 1; size < n; size *= 2) {
@@ -36,14 +51,31 @@ void mergeSort(int arr[], int n) {
     }
 }
 
-int main() {
-    int arr[] = {38, 27, 43, 3, 9, 82, 10};
-    int n = sizeof(arr) / sizeof(arr[0]);
-
-    mergeSort(arr, n);
-
+/* ---------- PRINT FUNCTION ---------- */
+void printArray(int arr[], int n) {
     for (int i = 0; i < n; i++)
         cout << arr[i] << " ";
+    cout << endl;
+}
+
+/* ---------- MAIN ---------- */
+int main() {
+    int arr1[] = {38, 27, 43, 3, 9, 82, 10};
+    int arr2[] = {38, 27, 43, 3, 9, 82, 10};
+
+    int n = sizeof(arr1) / sizeof(arr1[0]);
+    int temp[n];
+
+    cout << "Original Array:\n";
+    printArray(arr1, n);
+
+    recursiveMergeSort(arr1, temp, 0, n - 1);
+    cout << "\nAfter Recursive Merge Sort:\n";
+    printArray(arr1, n);
+
+    iterativeMergeSort(arr2, n);
+    cout << "\nAfter Non Recursive Merge Sort:\n";
+    printArray(arr2, n);
 
     return 0;
 }
