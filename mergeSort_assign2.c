@@ -1,11 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <omp.h>
 
-/* ---------- COMMON MERGE FUNCTION ---------- */
+#define THRESHOLD 1000   // cutoff to avoid too many tasks
+
+/* ---------- MERGE FUNCTION ---------- */
 void merge(int arr[], int temp[], int left, int mid, int right) {
-    int i = left;
-    int j = mid + 1;
-    int k = left;
+    int i = left, j = mid + 1, k = left;
 
     while (i <= mid && j <= right) {
         if (arr[i] <= arr[j])
@@ -24,71 +25,92 @@ void merge(int arr[], int temp[], int left, int mid, int right) {
         arr[x] = temp[x];
 }
 
-/* ---------- RECURSIVE MERGE SORT ---------- */
-void recursiveMergeSort(int arr[], int temp[], int left, int right) {
+/* ---------- SERIAL RECURSIVE MERGE SORT ---------- */
+void serialMergeSort(int arr[], int temp[], int left, int right) {
     if (left >= right)
         return;
 
     int mid = (left + right) / 2;
 
-    recursiveMergeSort(arr, temp, left, mid);
-    recursiveMergeSort(arr, temp, mid + 1, right);
-
+    serialMergeSort(arr, temp, left, mid);
+    serialMergeSort(arr, temp, mid + 1, right);
     merge(arr, temp, left, mid, right);
 }
 
-/* ---------- NON RECURSIVE (ITERATIVE) MERGE SORT ---------- */
-void iterativeMergeSort(int arr[], int n) {
-    int temp[n];
+/* ---------- PARALLEL MERGE SORT ---------- */
+void parallelMergeSort(int arr[], int temp[], int left, int right) {
+    if (left >= right)
+        return;
 
-    for (int size = 1; size < n; size *= 2) {
-        for (int left = 0; left < n - 1; left += 2 * size) {
-            int mid = left + size - 1;
-            if (mid >= n - 1)
-                mid = n - 1;
-
-            int right = left + 2 * size - 1;
-            if (right >= n - 1)
-                right = n - 1;
-
-            merge(arr, temp, left, mid, right);
-        }
+    if (right - left < THRESHOLD) {
+        serialMergeSort(arr, temp, left, right);
+        return;
     }
+
+    int mid = (left + right) / 2;
+
+    #pragma omp task shared(arr, temp)
+    parallelMergeSort(arr, temp, left, mid);
+
+    #pragma omp task shared(arr, temp)
+    parallelMergeSort(arr, temp, mid + 1, right);
+
+    #pragma omp taskwait
+    merge(arr, temp, left, mid, right);
 }
 
-/* ---------- PRINT FUNCTION ---------- */
-void printArray(int arr[], int n) {
+/* ---------- GENERATE RANDOM ARRAY ---------- */
+void generateArray(int arr[], int n) {
     for (int i = 0; i < n; i++)
-        printf("%d ", arr[i]);
-    printf("\n");
+        arr[i] = rand() % 100000;
 }
 
 /* ---------- MAIN ---------- */
 int main() {
-    int arr1[] = {38, 27, 43, 3, 9, 82, 10};
-    int arr2[] = {38, 27, 43, 3, 9, 82, 10};
+    int sizes[] = {500, 1000, 10000, 30000, 50000, 70000, 100000};
+    int numTests = sizeof(sizes) / sizeof(sizes[0]);
 
-    int n = sizeof(arr1) / sizeof(arr1[0]);
-    int temp[n];
+    printf("\n-----------------------------------------------------------\n");
+    printf("Data Size\tSerial Time (s)\tParallel Time (s)\n");
+    printf("-----------------------------------------------------------\n");
 
-    printf("Original Array:\n");
-    printArray(arr1, n);
+    for (int i = 0; i < numTests; i++) {
+        int n = sizes[i];
 
-    double start = omp_get_wtime();
-    recursiveMergeSort(arr1, temp, 0, n - 1);
-    double end = omp_get_wtime();
+        int *arr1 = (int *)malloc(n * sizeof(int));
+        int *arr2 = (int *)malloc(n * sizeof(int));
+        int *temp = (int *)malloc(n * sizeof(int));
 
-    printf("\nAfter Recursive Merge Sort:\n");
-    printArray(arr1, n);
-    printf("Recursive Merge Sort Time: %f seconds\n", end - start);
+        generateArray(arr1, n);
 
-    start = omp_get_wtime();
-    iterativeMergeSort(arr2, n);
-    end = omp_get_wtime();
+        for (int j = 0; j < n; j++)
+            arr2[j] = arr1[j];
 
-    printf("\nAfter Non Recursive Merge Sort:\n");
-    printArray(arr2, n);
-    printf("Non Recursive Merge Sort Time: %f seconds\n", end - start);
+        double start, end;
 
+        /* Serial timing */
+        start = omp_get_wtime();
+        serialMergeSort(arr1, temp, 0, n - 1);
+        end = omp_get_wtime();
+        double serialTime = end - start;
+
+        /* Parallel timing */
+        start = omp_get_wtime();
+        #pragma omp parallel
+        {
+            #pragma omp single
+            parallelMergeSort(arr2, temp, 0, n - 1);
+        }
+        end = omp_get_wtime();
+        double parallelTime = end - start;
+
+        printf("%d\t\t%f\t%f\n", n, serialTime, parallelTime);
+
+        free(arr1);
+        free(arr2);
+        free(temp);
+    }
+
+    printf("-----------------------------------------------------------\n");
     return 0;
 }
