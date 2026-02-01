@@ -1,5 +1,6 @@
 # HPC-Codes
 
-gcc -fopenmp mergeSort_assign2.c -o mergeSort
+### Assignment 1 execution
+`gcc -fopenmp mergeSort_assign2.c -o mergeSort`
 
-./mergeSort
+`./mergeSort`
