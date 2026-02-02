@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <omp.h>
 
-/* ---------- MERGE FUNCTION ---------- */
+/*  MERGE FUNCTION  */
 void merge(int arr[], int temp[], int left, int mid, int right) {
     int i = left, j = mid + 1, k = left;
 
@@ -23,7 +23,7 @@ void merge(int arr[], int temp[], int left, int mid, int right) {
         arr[x] = temp[x];
 }
 
-/* ---------- SERIAL RECURSIVE MERGE SORT ---------- */
+/* SERIAL RECURSIVE MERGE SORT */
 void serialRecursive(int arr[], int temp[], int left, int right) {
     if (left < right) {
         int mid = left + (right - left) / 2;
@@ -33,12 +33,11 @@ void serialRecursive(int arr[], int temp[], int left, int right) {
     }
 }
 
-/* ---------- PARALLEL RECURSIVE MERGE SORT ---------- */
+/*  PARALLEL RECURSIVE MERGE SORT */
 void parallelRecursive(int arr[], int temp[], int left, int right, int depth) {
     if (left < right) {
         int mid = left + (right - left) / 2;
         
-        // Use tasks only if depth is shallow to avoid overhead
         if (depth < 4) { 
             #pragma omp task
             parallelRecursive(arr, temp, left, mid, depth + 1);
@@ -53,7 +52,7 @@ void parallelRecursive(int arr[], int temp[], int left, int right, int depth) {
     }
 }
 
-/* ---------- SERIAL ITERATIVE MERGE SORT ---------- */
+/* SERIAL ITERATIVE MERGE SORT  */
 void serialMergeSort(int arr[], int n) {
     int *temp = (int *)malloc(n * sizeof(int));
 
@@ -72,7 +71,7 @@ void serialMergeSort(int arr[], int n) {
     free(temp);
 }
 
-/* ---------- PARALLEL ITERATIVE MERGE SORT ---------- */
+/* PARALLEL ITERATIVE MERGE SORT */
 void parallelMergeSort(int arr[], int n) {
     int *temp = (int *)malloc(n * sizeof(int));
 
@@ -92,13 +91,12 @@ void parallelMergeSort(int arr[], int n) {
     free(temp);
 }
 
-/* ---------- GENERATE RANDOM DATA ---------- */
+/* GENERATE RANDOM DATA */
 void generateArray(int arr[], int n) {
     for (int i = 0; i < n; i++)
         arr[i] = rand() % 100000;
 }
 
-/* ---------- MAIN ---------- */
 int main() {
     int sizes[] = {500, 1000, 10000, 30000, 50000};
     int tests = sizeof(sizes) / sizeof(sizes[0]);
@@ -118,22 +116,18 @@ int main() {
 
         double start, end;
 
-        // Iterative Serial
         start = omp_get_wtime();
         serialMergeSort(arr1, n);
         double s_iter = omp_get_wtime() - start;
 
-        // Iterative Parallel
         start = omp_get_wtime();
         parallelMergeSort(arr2, n);
         double p_iter = omp_get_wtime() - start;
 
-        // Recursive Serial
         start = omp_get_wtime();
         serialRecursive(arr3, temp, 0, n - 1);
         double s_rec = omp_get_wtime() - start;
 
-        // Recursive Parallel
         start = omp_get_wtime();
         #pragma omp parallel
         {

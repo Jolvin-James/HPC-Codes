@@ -1,14 +1,19 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-data = pd.read_csv("merge_sort_results.csv")
+df = pd.read_csv('merge_result.csv')
 
-plt.plot(data["Data Size"], data["Serial Time"], marker='o', label="Serial Merge Sort")
-plt.plot(data["Data Size"], data["Parallel Time"], marker='o', label="Parallel Merge Sort")
+plt.figure(figsize=(10, 6))
 
-plt.xlabel("Input Size")
-plt.ylabel("Time (seconds)")
-plt.title("Serial vs Parallel Merge Sort Performance")
+plt.plot(df['Size'], df['Serial(I)'], marker='o', linestyle='-', label='Serial Non Recursive')
+plt.plot(df['Size'], df['Parallel(I)'], marker='o', linestyle='-', label='Parallel Non Recursive')
+
+plt.plot(df['Size'], df['Serial R'], marker='o', linestyle='--', label='Serial Recursive')
+plt.plot(df['Size'], df['Parallel R'], marker='o', linestyle='--', label='Parallel Recursive')
+
+plt.title('Input Size vs Time Taken (Non-Recursive vs Recursive)')
+plt.xlabel('Input Size')
+plt.ylabel('Time Taken (s)')
 plt.legend()
 plt.grid(True)
 
