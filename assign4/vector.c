@@ -7,11 +7,15 @@ void vector_add_serial(double *a, double *b, double *c, int n);
 void vector_add_parallel(double *a, double *b, double *c, int n);
 
 int main() {
-    // The specific data points requested
+    int num_threads = 8; 
+
+    omp_set_num_threads(num_threads);
+
     int sizes[] = {500, 1000, 10000, 30000, 50000, 70000, 100000, 1000000};
     int num_tests = sizeof(sizes) / sizeof(sizes[0]);
 
-    printf("|   Data Size (N) |     Serial Time      |    Parallel Time     |\n");
+    printf("Running with %d Threads...\n", num_threads);
+    printf("    Data Size           Serial Time          Parallel Time     \n");
 
     for (int t = 0; t < num_tests; t++) {
         int n = sizes[t];
@@ -47,17 +51,14 @@ int main() {
         end_time = omp_get_wtime();
         parallel_duration = end_time - start_time;
 
-        // Print results without Speedup
-        printf("| %15d | %20f | %20f |\n", 
+        printf("%15d %20f %20f \n", 
                n, serial_duration, parallel_duration);
 
-        // Free memory for this iteration
         free(A);
         free(B);
         free(C);
     }
 
-    printf("----------------------------------------------------------------\n");
     return 0;
 }
 
@@ -67,7 +68,6 @@ void vector_add_serial(double *a, double *b, double *c, int n) {
         c[i] = a[i] + b[i];
     }
 }
-
 
 // --- Parallel Implementation ---
 void vector_add_parallel(double *a, double *b, double *c, int n) {
