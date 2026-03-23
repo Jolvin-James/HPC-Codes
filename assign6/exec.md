@@ -1,6 +1,7 @@
-`mpicc -o a mpi_process.md`
-`mpirun -np 6 ./a`
+`mpicc -o mpi_process mpi_process.c`
 
-`scp a node1://home/computer`
+`mpirun -np 4 ./mpi_process`
 
-`mpirun -np 6 --hostfile mpi.txt ./a`
+`scp mpi_process node2://home/computer`
+
+`mpirun -np 6 --hostfile machinefile.txt ./mpi_process`
